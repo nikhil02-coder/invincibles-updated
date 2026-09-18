@@ -1,0 +1,5 @@
+# Additional dependencies needed only for running the test suite locally.
+# Not installed in production/deployment - see requirements.txt for that.
+-r requirements.txt
+pytest==8.3.3
+httpx==0.27.2

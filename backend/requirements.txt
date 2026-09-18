@@ -1,0 +1,17 @@
+# Production dependencies only. Kept as an older, extremely well-established
+# set of versions specifically because they have prebuilt manylinux wheels
+# across the widest range of Python versions (3.9-3.12) - this avoids pip
+# falling back to a from-source build (which fails or times out on many
+# PaaS build environments, including Render's free tier) if the deployed
+# Python interpreter doesn't exactly match what a newer package version
+# ships wheels for. See DEPLOYMENT.md for the Python version this was
+# validated against.
+fastapi==0.115.0
+uvicorn==0.30.6
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+scipy==1.13.1
+scikit-image==0.24.0
+pydantic==2.9.2
+python-multipart==0.0.9
+anthropic==0.34.2

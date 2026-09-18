@@ -1,0 +1,22 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+
+# Generated at runtime by the registration pipeline - never committed.
+# The app creates these directories itself (os.makedirs(..., exist_ok=True))
+# the first time it runs, so nothing needs to be pre-created here.
+output/diagnostics/
+output/matches/
+output/registered/
+output/metrics/
+output/reports/
+output/cache/
+data/metadata/
+data/processed/
+
+# Environment
+.env
