@@ -4,12 +4,14 @@ services:
     runtime: python
     rootDir: backend
     plan: free
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install --prefer-binary -r requirements.txt
     startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
+      - key: PYTHONUNBUFFERED
+        value: "true"
       - key: ANTHROPIC_API_KEY
         sync: false
 
@@ -18,10 +20,12 @@ services:
     runtime: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
         value: https://invincibles-api.onrender.com
+      - key: NODE_VERSION
+        value: "20"
     routes:
       - type: rewrite
         source: /*

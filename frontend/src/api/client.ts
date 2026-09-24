@@ -3,7 +3,10 @@
 // configurable via VITE_API_BASE_URL so the frontend can be deployed
 // separately from the backend (Section 47/48).
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "http://localhost:8000";
+const rawBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "");
+const BASE_URL = rawBase !== undefined && rawBase !== ""
+  ? rawBase
+  : (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 export class ApiError extends Error {
   status: number;

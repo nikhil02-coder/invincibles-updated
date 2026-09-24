@@ -384,6 +384,31 @@ def lunar_ai_ask(req: AskLunarAIRequest):
     return lunar_ai.ask_lunar_ai(req.question, context)
 
 
+# ---------------------------------------------------------------------------
+# Serve frontend SPA if built (enables single-service full-stack deployment)
+# ---------------------------------------------------------------------------
+FRONTEND_DIST = os.path.join(os.path.dirname(PROJECT_ROOT), "frontend", "dist")
+if not os.path.isdir(FRONTEND_DIST):
+    FRONTEND_DIST = os.path.join(PROJECT_ROOT, "frontend", "dist")
+
+if os.path.isdir(FRONTEND_DIST):
+    assets_dir = os.path.join(FRONTEND_DIST, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="frontend-assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api") or full_path.startswith("static"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        file_path = os.path.join(FRONTEND_DIST, full_path)
+        if full_path and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        index_file = os.path.join(FRONTEND_DIST, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        raise HTTPException(status_code=404, detail="Frontend index.html not found")
+
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))

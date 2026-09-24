@@ -1,17 +1,27 @@
-# Production dependencies only. Kept as an older, extremely well-established
-# set of versions specifically because they have prebuilt manylinux wheels
-# across the widest range of Python versions (3.9-3.12) - this avoids pip
-# falling back to a from-source build (which fails or times out on many
-# PaaS build environments, including Render's free tier) if the deployed
-# Python interpreter doesn't exactly match what a newer package version
-# ships wheels for. See DEPLOYMENT.md for the Python version this was
-# validated against.
+# Production dependencies only.
+# --prefer-binary is passed in the Render build command so pip always uses
+# prebuilt manylinux wheels and never falls back to compiling from source.
+# All versions here have verified manylinux wheels for Python 3.11 on
+# linux/amd64 (Render's build environment).
 fastapi==0.115.0
 uvicorn==0.30.6
-numpy==1.26.4
-opencv-python-headless==4.10.0.84
-scipy==1.13.1
-scikit-image==0.24.0
-pydantic==2.9.2
 python-multipart==0.0.9
+pydantic==2.9.2
+
+# NumPy must be pinned before anything that links against it (opencv, scipy,
+# scikit-image) so they all agree on the ABI.
+numpy==1.26.4
+
+# Use the headless variant of OpenCV — avoids the libGL / libgthread
+# system-library dependency that the non-headless wheel pulls in and that
+# is not available on Render's build image without apt access.
+opencv-python-headless==4.10.0.84
+
+scipy==1.13.1
+
+# Pillow is a scikit-image runtime dependency; pin it explicitly so pip
+# doesn't try to build it from source.
+pillow==10.4.0
+scikit-image==0.24.0
+
 anthropic==0.34.2
