@@ -1,27 +1,60 @@
-# Production dependencies only.
-# --prefer-binary is passed in the Render build command so pip always uses
-# prebuilt manylinux wheels and never falls back to compiling from source.
-# All versions here have verified manylinux wheels for Python 3.11 on
-# linux/amd64 (Render's build environment).
+# =============================================================================
+# INVINCIBLES – Backend Production Dependencies
+# =============================================================================
+# Render deployment notes
+# -----------------------
+# • Root Directory must be set to "backend" in render.yaml / Render dashboard.
+#   Without this, Render runs pip install from the repo root where there is no
+#   requirements.txt, causing "Exited with status 1" immediately.
+# • PYTHON_VERSION env var is set to 3.11.11 in render.yaml so Render's build
+#   image matches the exact interpreter these wheels are built for.
+# • The build command uses --prefer-binary so pip always picks a prebuilt
+#   manylinux wheel and never falls back to compiling from source (which
+#   fails / times out on Render's free-tier build container).
+# • All versions below have verified prebuilt manylinux wheels for
+#   CPython 3.11 / linux-x86_64 (Render's build environment).
+# =============================================================================
+
+# ── Web framework ─────────────────────────────────────────────────────────────
 fastapi==0.115.0
+# Plain uvicorn (no [standard] extras) avoids pulling in uvloop, httptools,
+# and watchfiles, which are compiled C extensions unnecessary for production.
 uvicorn==0.30.6
+# Required by FastAPI for multipart/form-data request body parsing.
 python-multipart==0.0.9
+# FastAPI's data validation layer.
 pydantic==2.9.2
 
-# NumPy must be pinned before anything that links against it (opencv, scipy,
-# scikit-image) so they all agree on the ABI.
+# ── Numerical core ────────────────────────────────────────────────────────────
+# NumPy must be pinned BEFORE opencv / scipy / scikit-image so that all three
+# link against the same NumPy ABI (mismatches cause silent wrong results or
+# hard crashes at import time).
 numpy==1.26.4
 
-# Use the headless variant of OpenCV — avoids the libGL / libgthread
-# system-library dependency that the non-headless wheel pulls in and that
-# is not available on Render's build image without apt access.
+# ── Computer vision ───────────────────────────────────────────────────────────
+# opencv-python-headless instead of opencv-python:
+#   • Headless variant has no dependency on libGL / libgthread-2.0, which are
+#     X11/GTK runtime libraries NOT present in Render's build image (no apt
+#     access on free tier).
+#   • Full opencv-python would fail at runtime with:
+#       ImportError: libGL.so.1: cannot open shared object file
 opencv-python-headless==4.10.0.84
 
+# ── Scientific computing ──────────────────────────────────────────────────────
+# Used for: griddata (residual interpolation), minimize (subpixel refinement),
+# Delaunay (triangulation), phase_cross_correlation (skimage uses it).
 scipy==1.13.1
 
-# Pillow is a scikit-image runtime dependency; pin it explicitly so pip
-# doesn't try to build it from source.
+# Pillow is a hard runtime dependency of scikit-image; pinning it explicitly
+# prevents pip from trying to build it from source on a cache miss.
 pillow==10.4.0
+
+# Used for: structural_similarity (SSIM comparison metrics),
+# phase_cross_correlation (coarse alignment), and general image utilities.
 scikit-image==0.24.0
 
+# ── AI / LLM (optional – degrades gracefully without ANTHROPIC_API_KEY) ───────
+# The Lunar AI chat feature calls Claude via the Anthropic Python SDK.
+# If ANTHROPIC_API_KEY is not set in the Render environment, the feature
+# automatically falls back to a rule-based answer engine — no errors thrown.
 anthropic==0.34.2

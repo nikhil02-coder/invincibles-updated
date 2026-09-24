@@ -1,0 +1,15 @@
+# =============================================================================
+# INVINCIBLES – Root-level requirements stub
+# =============================================================================
+# This file exists only to prevent "no requirements.txt found" errors if
+# Render is accidentally pointed at the repo root instead of backend/.
+#
+# ⚠  DO NOT add real dependencies here.
+#    The actual production requirements live in:  backend/requirements.txt
+#
+# Render Blueprint (render.yaml) sets rootDir: backend for the API service,
+# so pip install is run from inside backend/ and picks up the correct file.
+# If you are configuring the service manually in the Render dashboard, set:
+#   Root Directory = backend
+# =============================================================================
+-r backend/requirements.txt
